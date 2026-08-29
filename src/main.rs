@@ -122,7 +122,6 @@ fn main() -> Result<(), slint::PlatformError> {
     // --- save settings ---
     {
         let cfg_for_save = cfg_arc.clone();
-        let ui_for_save = ui.as_weak();
         ui.on_save_settings(move |auto_aloop, path| {
             let mut c = cfg_for_save.lock().unwrap();
             c.auto_aloop = auto_aloop;
@@ -215,13 +214,15 @@ fn main() -> Result<(), slint::PlatformError> {
             let stderr = child.stderr.take().expect("stderr piped");
 
             // stdout reader
-            let ui_w = ui.as_weak();
-            let log_w = log.clone();
+            let ui_w0 = ui.as_weak();
+            let log_w0 = log.clone();
             thread::spawn(move || {
                 let r = BufReader::new(stdout);
                 for line in r.lines().map_while(Result::ok) {
                     let line_clone = line.clone();
                     let lower = line.to_lowercase();
+                    let ui_w = ui_w0.clone();
+                    let log_w = log_w0.clone();
                     let _ = slint::invoke_from_event_loop(move || {
                         if let Some(ui) = ui_w.upgrade() {
                             append_log(&ui, &log_w, line_clone);
@@ -237,11 +238,13 @@ fn main() -> Result<(), slint::PlatformError> {
             });
 
             // stderr reader
-            let ui_w = ui.as_weak();
-            let log_w = log.clone();
+            let ui_w0 = ui.as_weak();
+            let log_w0 = log.clone();
             thread::spawn(move || {
                 let r = BufReader::new(stderr);
                 for line in r.lines().map_while(Result::ok) {
+                    let ui_w = ui_w0.clone();
+                    let log_w = log_w0.clone();
                     let _ = slint::invoke_from_event_loop(move || {
                         if let Some(ui) = ui_w.upgrade() {
                             append_log(&ui, &log_w, format!("[stderr] {line}"));
@@ -255,8 +258,8 @@ fn main() -> Result<(), slint::PlatformError> {
 
             // watcher: poll child, when it exits -> mark disconnected.
             // Tolerates None (e.g. user hit Disconnect mid-poll) by continuing.
-            let ui_w = ui.as_weak();
-            let log_w = log.clone();
+            let ui_w0 = ui.as_weak();
+            let log_w0 = log.clone();
             let mic_w = mic.clone();
             thread::spawn(move || {
                 loop {
@@ -271,6 +274,8 @@ fn main() -> Result<(), slint::PlatformError> {
                         Ok(Some(status)) => {
                             *guard = None;
                             drop(guard);
+                            let ui_w = ui_w0.clone();
+                            let log_w = log_w0.clone();
                             let _ = slint::invoke_from_event_loop(move || {
                                 if let Some(ui) = ui_w.upgrade() {
                                     let msg = if status.success() {
@@ -291,6 +296,8 @@ fn main() -> Result<(), slint::PlatformError> {
                         Ok(None) => continue,
                         Err(e) => {
                             drop(guard);
+                            let ui_w = ui_w0.clone();
+                            let log_w = log_w0.clone();
                             let _ = slint::invoke_from_event_loop(move || {
                                 if let Some(ui) = ui_w.upgrade() {
                                     append_log(&ui, &log_w, format!("  wait error: {e}"));
