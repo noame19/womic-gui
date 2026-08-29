@@ -109,7 +109,7 @@ fn main() -> Result<(), slint::PlatformError> {
         cfg.micclient_path.clone().into()
     });
     ui.set_auto_aloop(cfg.auto_aloop);
-    ui.set_status("Disconnected".to_string());
+    ui.set_status("Disconnected".into());
     ui.set_status_color(brush("#909399"));
     ui.set_log(String::new().into());
     ui.set_connecting(false);
@@ -165,7 +165,7 @@ fn main() -> Result<(), slint::PlatformError> {
 
             if !PathBuf::from(&mic_path).exists() {
                 append_log(&ui, &log, format!("  !! micclient not found: {mic_path}"));
-                ui.set_status("micclient not found".to_string());
+                ui.set_status("micclient not found".into());
                 ui.set_status_color(brush("#f56c6c"));
                 ui.set_connecting(false);
                 return;
@@ -178,7 +178,7 @@ fn main() -> Result<(), slint::PlatformError> {
                         Ok(_) => append_log(&ui, &log, "  ok snd-aloop loaded".to_string()),
                         Err(e) => {
                             append_log(&ui, &log, format!("  !! load_aloop: {e}"));
-                            ui.set_status("Failed to load snd-aloop".to_string());
+                            ui.set_status("Failed to load snd-aloop".into());
                             ui.set_status_color(brush("#f56c6c"));
                             ui.set_connecting(false);
                             return;
@@ -187,7 +187,7 @@ fn main() -> Result<(), slint::PlatformError> {
                 } else {
                     append_log(&ui, &log,
                         "  !! snd-aloop not loaded. Run `sudo modprobe snd-aloop` or enable Auto-load.".to_string());
-                    ui.set_status("snd-aloop not loaded".to_string());
+                    ui.set_status("snd-aloop not loaded".into());
                     ui.set_status_color(brush("#f56c6c"));
                     ui.set_connecting(false);
                     return;
@@ -202,7 +202,7 @@ fn main() -> Result<(), slint::PlatformError> {
                 Ok(c) => c,
                 Err(e) => {
                     append_log(&ui, &log, format!("  !! spawn failed: {e}"));
-                    ui.set_status("Failed to start micclient".to_string());
+                    ui.set_status("Failed to start micclient".into());
                     ui.set_status_color(brush("#f56c6c"));
                     ui.set_connecting(false);
                     return;
@@ -226,7 +226,7 @@ fn main() -> Result<(), slint::PlatformError> {
                         if let Some(ui) = ui_w.upgrade() {
                             append_log(&ui, &log_w, line_clone);
                             if lower.contains("connected") && !lower.contains("disconnect") {
-                                ui.set_status("Connected".to_string());
+                                ui.set_status("Connected".into());
                                 ui.set_status_color(brush("#67c23a"));
                                 ui.set_connected(true);
                                 ui.set_connecting(false);
@@ -335,7 +335,7 @@ fn main() -> Result<(), slint::PlatformError> {
                 None => append_log(&ui, &log, "  (no running micclient)".to_string()),
             }
 
-            ui.set_status("Disconnected".to_string());
+            ui.set_status("Disconnected".into());
             ui.set_status_color(brush("#909399"));
             ui.set_connected(false);
             ui.set_connecting(false);
