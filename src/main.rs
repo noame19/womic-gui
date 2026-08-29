@@ -17,7 +17,7 @@ use std::time::Duration;
 use serde::{Deserialize, Serialize};
 
 slint::include_modules!();
-use slint::app::AppWindow;
+use crate::AppWindow;
 
 const LOG_MAX_LINES: usize = 200;
 const POLL_INTERVAL_MS: u64 = 500;

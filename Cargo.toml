@@ -11,6 +11,9 @@ keywords = ["womic", "microphone", "gui", "slint"]
 name = "womic-gui"
 path = "src/main.rs"
 
+[build-dependencies]
+slint-build = "1.10"
+
 [dependencies]
 slint = { version = "1.10", features = ["default"] }
 dirs = "5"
