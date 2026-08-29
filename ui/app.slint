@@ -31,10 +31,7 @@ export component AppWindow inherits Window {
             title: "Connection mode";
             ComboBox {
                 model: ["Wifi", "Bluetooth"];
-                current-value: root.mode;
-                current-valueChanged(text) => {
-                    root.mode = text;
-                }
+                current-value <=> root.mode;
             }
         }
 
