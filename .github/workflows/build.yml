@@ -79,18 +79,7 @@ jobs:
           ./build/linuxdeploy-squashfs/usr/bin/linuxdeploy \
             --appdir dist/AppDir \
             --desktop-file dist/AppDir/womic-gui.desktop \
-            --icon-file dist/AppDir/usr/share/icons/hicolor/256x256/apps/womic-gui.svg \
-            --library libwayland-client.so.0 \
-            --library libwayland-cursor.so.0 \
-            --library libwayland-egl.so.1 \
-            --library libwayland-server.so.0 \
-            --library libxkbcommon.so.0 \
-            --library libfontconfig.so.1 \
-            --library libfreetype.so.6 \
-            --library libEGL.so.1 \
-            --library libGL.so.1 \
-            --library libgcc_s.so.1 \
-            --library libstdc++.so.6
+            --icon-file dist/AppDir/usr/share/icons/hicolor/256x256/apps/womic-gui.svg
 
       - name: Pack AppImage
         env:
