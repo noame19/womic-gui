@@ -1,9 +1,4 @@
-import { Button, CheckBox, LineEdit, RadioButton, ScrollView, TextEdit, GroupBox, VerticalBox, HorizontalBox } from "std-widgets.slint";
-
-export struct Settings {
-    auto_aloop: bool,
-    micclient_path: string,
-}
+import { Button, CheckBox, LineEdit, ScrollView, TextEdit, GroupBox, VerticalBox, HorizontalBox, ComboBox } from "std-widgets.slint";
 
 export component AppWindow inherits Window {
     title: "WO Mic";
@@ -16,7 +11,7 @@ export component AppWindow inherits Window {
     in-out property <string> mode: "Wifi";
     in-out property <string> address: "";
     in-out property <string> status: "Disconnected";
-    in-out property <string> status-color: "#909399";
+    in-out property <brush> status-color: #909399;
     in-out property <string> log: "";
     in-out property <bool> connecting: false;
     in-out property <bool> connected: false;
@@ -27,7 +22,6 @@ export component AppWindow inherits Window {
     callback disconnect();
     callback browse-micclient();
     callback save-settings(bool, string);
-    callback show-log(string);
 
     VerticalBox {
         padding: 12px;
@@ -35,17 +29,11 @@ export component AppWindow inherits Window {
 
         GroupBox {
             title: "Connection mode";
-            HorizontalBox {
-                spacing: 16px;
-                RadioButton {
-                    text: "WiFi";
-                    checked: root.mode == "Wifi";
-                    toggled => { root.mode = "Wifi"; }
-                }
-                RadioButton {
-                    text: "Bluetooth";
-                    checked: root.mode == "Bluetooth";
-                    toggled => { root.mode = "Bluetooth"; }
+            ComboBox {
+                model: ["Wifi", "Bluetooth"];
+                current-value: root.mode;
+                current-valueChanged(text) => {
+                    root.mode = text;
                 }
             }
         }
@@ -69,7 +57,7 @@ export component AppWindow inherits Window {
                 clicked => {
                     root.connecting = true;
                     root.status = "Connecting…";
-                    root.status-color = "#e6a23c";
+                    root.status-color = #e6a23c;
                     root.connect(root.mode, root.address);
                 }
             }
