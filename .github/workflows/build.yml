@@ -56,6 +56,7 @@ jobs:
 
       - name: Download linuxdeploy + appimagetool
         run: |
+          mkdir -p build
           cd build
           # linuxdeploy core (extract AppImage to avoid FUSE dependency)
           wget -q https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
