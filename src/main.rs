@@ -17,7 +17,6 @@ use std::time::Duration;
 use serde::{Deserialize, Serialize};
 
 slint::include_modules!();
-use crate::AppWindow;
 
 const LOG_MAX_LINES: usize = 200;
 const POLL_INTERVAL_MS: u64 = 500;
@@ -56,6 +55,14 @@ fn save_config(c: &Config) {
     if let Ok(s) = serde_json::to_string_pretty(c) {
         let _ = fs::write(config_path(), s);
     }
+}
+
+fn brush(hex: &str) -> slint::Brush {
+    let h = hex.trim_start_matches('#');
+    let r = u8::from_str_radix(&h[0..2], 16).unwrap_or(0);
+    let g = u8::from_str_radix(&h[2..4], 16).unwrap_or(0);
+    let b = u8::from_str_radix(&h[4..6], 16).unwrap_or(0);
+    slint::Brush::from(slint::Color::from_rgb_u8(r, g, b))
 }
 
 fn is_aloop_loaded() -> bool {
@@ -103,7 +110,7 @@ fn main() -> Result<(), slint::PlatformError> {
     });
     ui.set_auto_aloop(cfg.auto_aloop);
     ui.set_status("Disconnected".into());
-    ui.set_status_color("#909399".into());
+    ui.set_status_color(brush("#909399"));
     ui.set_log(String::new().into());
     ui.set_connecting(false);
     ui.set_connected(false);
@@ -159,7 +166,7 @@ fn main() -> Result<(), slint::PlatformError> {
             if !PathBuf::from(&mic_path).exists() {
                 append_log(&ui, &log, format!("  !! micclient not found: {mic_path}"));
                 ui.set_status("micclient not found".into());
-                ui.set_status_color("#f56c6c".into());
+                ui.set_status_color(brush("#f56c6c"));
                 ui.set_connecting(false);
                 return;
             }
@@ -172,7 +179,7 @@ fn main() -> Result<(), slint::PlatformError> {
                         Err(e) => {
                             append_log(&ui, &log, format!("  !! load_aloop: {e}"));
                             ui.set_status("Failed to load snd-aloop".into());
-                            ui.set_status_color("#f56c6c".into());
+                            ui.set_status_color(brush("#f56c6c"));
                             ui.set_connecting(false);
                             return;
                         }
@@ -181,7 +188,7 @@ fn main() -> Result<(), slint::PlatformError> {
                     append_log(&ui, &log,
                         "  !! snd-aloop not loaded. Run `sudo modprobe snd-aloop` or enable Auto-load.".into());
                     ui.set_status("snd-aloop not loaded".into());
-                    ui.set_status_color("#f56c6c".into());
+                    ui.set_status_color(brush("#f56c6c"));
                     ui.set_connecting(false);
                     return;
                 }
@@ -196,7 +203,7 @@ fn main() -> Result<(), slint::PlatformError> {
                 Err(e) => {
                     append_log(&ui, &log, format!("  !! spawn failed: {e}"));
                     ui.set_status("Failed to start micclient".into());
-                    ui.set_status_color("#f56c6c".into());
+                    ui.set_status_color(brush("#f56c6c"));
                     ui.set_connecting(false);
                     return;
                 }
@@ -220,7 +227,7 @@ fn main() -> Result<(), slint::PlatformError> {
                             append_log(&ui, &log_w, line_clone);
                             if lower.contains("connected") && !lower.contains("disconnect") {
                                 ui.set_status("Connected".into());
-                                ui.set_status_color("#67c23a".into());
+                                ui.set_status_color(brush("#67c23a"));
                                 ui.set_connected(true);
                                 ui.set_connecting(false);
                             }
@@ -329,7 +336,7 @@ fn main() -> Result<(), slint::PlatformError> {
             }
 
             ui.set_status("Disconnected".into());
-            ui.set_status_color("#909399".into());
+            ui.set_status_color(brush("#909399"));
             ui.set_connected(false);
             ui.set_connecting(false);
         });
