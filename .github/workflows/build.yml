@@ -22,7 +22,8 @@ jobs:
             libwayland-dev \
             libxcb-cursor-dev \
             libxcb-keysyms1-dev \
-            libxcb-shape0-dev
+            libxcb-shape0-dev \
+            desktop-file-utils \
 
       - uses: dtolnay/rust-toolchain@stable
         with:
