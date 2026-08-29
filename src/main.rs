@@ -102,7 +102,7 @@ fn main() -> Result<(), slint::PlatformError> {
     let cfg = load_config();
 
     ui.set_address(cfg.address.clone().into());
-    ui.set_mode(if cfg.mode.is_empty() { "Wifi".to_string() } else { cfg.mode.clone().into() });
+    ui.set_mode(if cfg.mode.is_empty() { "Wifi".into() } else { cfg.mode.clone().into() });
     ui.set_micclient_path(if cfg.micclient_path.is_empty() {
         default_mic_path().into()
     } else {
