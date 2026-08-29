@@ -278,9 +278,9 @@ fn main() -> Result<(), slint::PlatformError> {
                                     } else {
                                         "micclient exited unexpectedly"
                                     };
-                                    let color = if status.success() { "#909399" } else { "#f56c6c" };
+                                    let color = if status.success() { brush("#909399") } else { brush("#f56c6c") };
                                     ui.set_status(msg.into());
-                                    ui.set_status_color(color.into());
+                                    ui.set_status_color(color);
                                     ui.set_connected(false);
                                     ui.set_connecting(false);
                                     append_log(&ui, &log_w, format!("  ok micclient exited: {status}"));
