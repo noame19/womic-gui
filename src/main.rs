@@ -34,7 +34,7 @@ struct Config {
     auto_aloop: bool,
 }
 
-fn default_mode() -> String { "Wifi".into() }
+fn default_mode() -> String { "Wifi".to_string() }
 
 fn config_path() -> PathBuf {
     let mut p = dirs::config_dir().unwrap_or_else(|| PathBuf::from("."));
@@ -79,7 +79,7 @@ fn load_aloop() -> Result<(), String> {
             if s.success() { return Ok(()); }
         }
     }
-    Err("both pkexec and sudo failed (isPolicyKit/sudo installed?)".into())
+    Err("both pkexec and sudo failed (isPolicyKit/sudo installed?)".to_string())
 }
 
 fn default_mic_path() -> String {
@@ -102,14 +102,14 @@ fn main() -> Result<(), slint::PlatformError> {
     let cfg = load_config();
 
     ui.set_address(cfg.address.clone().into());
-    ui.set_mode(if cfg.mode.is_empty() { "Wifi".into() } else { cfg.mode.clone().into() });
+    ui.set_mode(if cfg.mode.is_empty() { "Wifi".to_string() } else { cfg.mode.clone().into() });
     ui.set_micclient_path(if cfg.micclient_path.is_empty() {
         default_mic_path().into()
     } else {
         cfg.micclient_path.clone().into()
     });
     ui.set_auto_aloop(cfg.auto_aloop);
-    ui.set_status("Disconnected".into());
+    ui.set_status("Disconnected".to_string());
     ui.set_status_color(brush("#909399"));
     ui.set_log(String::new().into());
     ui.set_connecting(false);
@@ -165,7 +165,7 @@ fn main() -> Result<(), slint::PlatformError> {
 
             if !PathBuf::from(&mic_path).exists() {
                 append_log(&ui, &log, format!("  !! micclient not found: {mic_path}"));
-                ui.set_status("micclient not found".into());
+                ui.set_status("micclient not found".to_string());
                 ui.set_status_color(brush("#f56c6c"));
                 ui.set_connecting(false);
                 return;
@@ -173,12 +173,12 @@ fn main() -> Result<(), slint::PlatformError> {
 
             if !is_aloop_loaded() {
                 if cfg.auto_aloop {
-                    append_log(&ui, &log, "Loading snd-aloop…".into());
+                    append_log(&ui, &log, "Loading snd-aloop…".to_string());
                     match load_aloop() {
-                        Ok(_) => append_log(&ui, &log, "  ok snd-aloop loaded".into()),
+                        Ok(_) => append_log(&ui, &log, "  ok snd-aloop loaded".to_string()),
                         Err(e) => {
                             append_log(&ui, &log, format!("  !! load_aloop: {e}"));
-                            ui.set_status("Failed to load snd-aloop".into());
+                            ui.set_status("Failed to load snd-aloop".to_string());
                             ui.set_status_color(brush("#f56c6c"));
                             ui.set_connecting(false);
                             return;
@@ -186,8 +186,8 @@ fn main() -> Result<(), slint::PlatformError> {
                     }
                 } else {
                     append_log(&ui, &log,
-                        "  !! snd-aloop not loaded. Run `sudo modprobe snd-aloop` or enable Auto-load.".into());
-                    ui.set_status("snd-aloop not loaded".into());
+                        "  !! snd-aloop not loaded. Run `sudo modprobe snd-aloop` or enable Auto-load.".to_string());
+                    ui.set_status("snd-aloop not loaded".to_string());
                     ui.set_status_color(brush("#f56c6c"));
                     ui.set_connecting(false);
                     return;
@@ -202,7 +202,7 @@ fn main() -> Result<(), slint::PlatformError> {
                 Ok(c) => c,
                 Err(e) => {
                     append_log(&ui, &log, format!("  !! spawn failed: {e}"));
-                    ui.set_status("Failed to start micclient".into());
+                    ui.set_status("Failed to start micclient".to_string());
                     ui.set_status_color(brush("#f56c6c"));
                     ui.set_connecting(false);
                     return;
@@ -226,7 +226,7 @@ fn main() -> Result<(), slint::PlatformError> {
                         if let Some(ui) = ui_w.upgrade() {
                             append_log(&ui, &log_w, line_clone);
                             if lower.contains("connected") && !lower.contains("disconnect") {
-                                ui.set_status("Connected".into());
+                                ui.set_status("Connected".to_string());
                                 ui.set_status_color(brush("#67c23a"));
                                 ui.set_connected(true);
                                 ui.set_connecting(false);
@@ -314,7 +314,7 @@ fn main() -> Result<(), slint::PlatformError> {
                 Some(u) => u,
                 None => return,
             };
-            append_log(&ui, &log, "Disconnect requested…".into());
+            append_log(&ui, &log, "Disconnect requested…".to_string());
 
             let child_opt = mic.lock().unwrap().take();
             match child_opt {
@@ -324,18 +324,18 @@ fn main() -> Result<(), slint::PlatformError> {
                     unsafe { libc::kill(pid as libc::pid_t, libc::SIGINT); }
                     thread::sleep(Duration::from_millis(SIGINT_GRACE_MS));
                     match child.try_wait() {
-                        Ok(Some(_)) => append_log(&ui, &log, "  ok exited cleanly".into()),
+                        Ok(Some(_)) => append_log(&ui, &log, "  ok exited cleanly".to_string()),
                         _ => {
                             let _ = child.kill();
                             let _ = child.wait();
-                            append_log(&ui, &log, "  ok killed (SIGKILL)".into());
+                            append_log(&ui, &log, "  ok killed (SIGKILL)".to_string());
                         }
                     }
                 }
-                None => append_log(&ui, &log, "  (no running micclient)".into()),
+                None => append_log(&ui, &log, "  (no running micclient)".to_string()),
             }
 
-            ui.set_status("Disconnected".into());
+            ui.set_status("Disconnected".to_string());
             ui.set_status_color(brush("#909399"));
             ui.set_connected(false);
             ui.set_connecting(false);
