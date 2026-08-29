@@ -88,7 +88,7 @@ fn default_mic_path() -> String {
         .unwrap_or_default()
 }
 
-fn append_log(ui: &AppWindow, log: &Arc<Mutex<Vec<String>>>, line: impl Into<String>) {
+fn append_log(ui: &AppWindow, log: &Arc<Mutex<Vec<String>>>, line: String) {
     let mut buf = log.lock().unwrap();
     buf.push(line.into());
     let n = buf.len();
