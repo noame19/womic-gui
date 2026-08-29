@@ -1,0 +1,26 @@
+[package]
+name = "womic-gui"
+version = "0.1.0"
+edition = "2021"
+description = "Tiny GUI wrapper for the WO Mic Linux CLI client"
+license = "MIT"
+repository = "https://github.com/noame19/womic-gui"
+keywords = ["womic", "microphone", "gui", "slint"]
+
+[[bin]]
+name = "womic-gui"
+path = "src/main.rs"
+
+[dependencies]
+slint = { version = "1.10", features = ["default"] }
+dirs = "5"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+libc = "0.2"
+
+[profile.release]
+opt-level = "z"
+lto = true
+codegen-units = 1
+strip = true
+panic = "abort"

@@ -1,0 +1,147 @@
+import { Button, CheckBox, LineEdit, RadioButton, ScrollView, TextEdit, GroupBox, VerticalBox, HorizontalBox } from "std-widgets.slint";
+
+export struct Settings {
+    auto_aloop: bool,
+    micclient_path: string,
+}
+
+export component AppWindow inherits Window {
+    title: "WO Mic";
+    width: 520px;
+    height: 620px;
+    preferred-width: 520px;
+    preferred-height: 620px;
+    icon: @image-url("womic.svg");
+
+    in-out property <string> mode: "Wifi";
+    in-out property <string> address: "";
+    in-out property <string> status: "Disconnected";
+    in-out property <string> status-color: "#909399";
+    in-out property <string> log: "";
+    in-out property <bool> connecting: false;
+    in-out property <bool> connected: false;
+    in-out property <bool> auto-aloop: false;
+    in-out property <string> micclient-path: "";
+
+    callback connect(string, string);
+    callback disconnect();
+    callback browse-micclient();
+    callback save-settings(bool, string);
+    callback show-log(string);
+
+    VerticalBox {
+        padding: 12px;
+        spacing: 8px;
+
+        GroupBox {
+            title: "Connection mode";
+            HorizontalBox {
+                spacing: 16px;
+                RadioButton {
+                    text: "WiFi";
+                    checked: root.mode == "Wifi";
+                    toggled => { root.mode = "Wifi"; }
+                }
+                RadioButton {
+                    text: "Bluetooth";
+                    checked: root.mode == "Bluetooth";
+                    toggled => { root.mode = "Bluetooth"; }
+                }
+            }
+        }
+
+        GroupBox {
+            title: "Address";
+            LineEdit {
+                placeholder-text: root.mode == "Wifi" ? "192.168.1.100" : "AA:BB:CC:DD:EE:FF";
+                text: root.address;
+                edited(text) => { root.address = text; }
+                enabled: !root.connected && !root.connecting;
+            }
+        }
+
+        HorizontalBox {
+            spacing: 8px;
+            Button {
+                text: "Connect";
+                primary: true;
+                enabled: !root.connected && !root.connecting && root.address != "";
+                clicked => {
+                    root.connecting = true;
+                    root.status = "Connecting…";
+                    root.status-color = "#e6a23c";
+                    root.connect(root.mode, root.address);
+                }
+            }
+            Button {
+                text: "Disconnect";
+                enabled: root.connected || root.connecting;
+                clicked => {
+                    root.disconnect();
+                }
+            }
+        }
+
+        Text {
+            text: root.status;
+            color: root.status-color;
+            font-size: 14px;
+            horizontal-alignment: center;
+        }
+
+        GroupBox {
+            title: "Log";
+            VerticalBox {
+                padding: 4px;
+                ScrollView {
+                    height: 220px;
+                    TextEdit {
+                        read-only: true;
+                        text: root.log;
+                        wrap: word-wrap;
+                        font-family: "monospace";
+                        font-size: 11px;
+                    }
+                }
+            }
+        }
+
+        GroupBox {
+            title: "Settings";
+            VerticalBox {
+                spacing: 4px;
+
+                CheckBox {
+                    text: "Auto-load snd-aloop (prompts for password)";
+                    checked: root.auto-aloop;
+                    toggled => {
+                        root.auto-aloop = self.checked;
+                        root.save-settings(root.auto-aloop, root.micclient-path);
+                    }
+                }
+
+                HorizontalBox {
+                    spacing: 4px;
+                    Text {
+                        text: "micclient path:";
+                        vertical-alignment: center;
+                    }
+                    LineEdit {
+                        placeholder-text: "/path/to/micclient-x86_64.AppImage";
+                        text: root.micclient-path;
+                        edited(text) => {
+                            root.micclient-path = text;
+                            root.save-settings(root.auto-aloop, root.micclient-path);
+                        }
+                    }
+                    Button {
+                        text: "Browse…";
+                        clicked => {
+                            root.browse-micclient();
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,116 @@
+name: build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install host deps for Slint (fontconfig, xkbcommon, etc.)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            libfontconfig1-dev \
+            libxkbcommon-dev \
+            libwayland-dev \
+            libxcb-cursor-dev \
+            libxcb-keysyms1-dev \
+            libxcb-shape0-dev
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-unknown-linux-gnu
+
+      - name: Cache cargo registry & build
+        uses: Swatinem/rust-cache@v2
+
+      - name: Build release binary
+        run: cargo build --release --target x86_64-unknown-linux-gnu
+
+      - name: Strip binary
+        run: |
+          find target/x86_64-unknown-linux-gnu/release -maxdepth 1 -type f -name womic-gui -exec strip {} \;
+          ls -la target/x86_64-unknown-linux-gnu/release/womic-gui
+
+      - name: Stage AppDir
+        run: |
+          set -e
+          rm -rf dist/AppDir
+          mkdir -p dist/AppDir/usr/bin
+          mkdir -p dist/AppDir/usr/share/applications
+          mkdir -p dist/AppDir/usr/share/icons/hicolor/256x256/apps
+          mkdir -p dist/AppDir/usr/lib
+          cp target/x86_64-unknown-linux-gnu/release/womic-gui dist/AppDir/usr/bin/
+          cp appimage/AppRun dist/AppDir/AppRun
+          cp appimage/womic-gui.desktop dist/AppDir/womic-gui.desktop
+          cp appimage/womic-gui.svg dist/AppDir/usr/share/icons/hicolor/256x256/apps/womic-gui.svg
+          cp appimage/womic-gui.svg dist/AppDir/.DirIcon
+          chmod +x dist/AppDir/AppRun dist/AppDir/usr/bin/womic-gui
+
+      - name: Download linuxdeploy + appimagetool
+        run: |
+          cd build
+          # linuxdeploy core (extract AppImage to avoid FUSE dependency)
+          wget -q https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
+          chmod +x linuxdeploy-x86_64.AppImage
+          ./linuxdeploy-x86_64.AppImage --appimage-extract > /dev/null
+          mv squashfs-root linuxdeploy-squashfs
+          # appimagetool
+          wget -q https://github.com/AppImageCommunity/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
+          chmod +x appimagetool-x86_64.AppImage
+          ./appimagetool-x86_64.AppImage --appimage-extract > /dev/null
+          mv squashfs-root appimagetool-squashfs
+          ls -la
+
+      - name: Collect ELF deps with linuxdeploy
+        env:
+          DISPLAY: :0
+          LDAI_DISABLE_PLUGINS: "1"
+        run: |
+          export PATH="$PWD/build/linuxdeploy-squashfs/usr/bin:$PATH"
+          ./build/linuxdeploy-squashfs/usr/bin/linuxdeploy \
+            --appdir dist/AppDir \
+            --desktop-file dist/AppDir/womic-gui.desktop \
+            --icon-file dist/AppDir/usr/share/icons/hicolor/256x256/apps/womic-gui.svg \
+            --library libwayland-client.so.0 \
+            --library libwayland-cursor.so.0 \
+            --library libwayland-egl.so.1 \
+            --library libwayland-server.so.0 \
+            --library libxkbcommon.so.0 \
+            --library libfontconfig.so.1 \
+            --library libfreetype.so.6 \
+            --library libEGL.so.1 \
+            --library libGL.so.1 \
+            --library libgcc_s.so.1 \
+            --library libstdc++.so.6
+
+      - name: Pack AppImage
+        env:
+          ARCH: x86_64
+        run: |
+          ./build/appimagetool-squashfs/usr/bin/appimagetool \
+            dist/AppDir \
+            dist/womic-gui-x86_64.AppImage
+          ls -la dist/womic-gui-x86_64.AppImage
+          file dist/womic-gui-x86_64.AppImage
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: womic-gui-x86_64.AppImage
+          path: dist/womic-gui-x86_64.AppImage
+          if-no-files-found: error
+
+      - name: Attach to release (when triggered by tag)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/womic-gui-x86_64.AppImage
+          generate_release_notes: true

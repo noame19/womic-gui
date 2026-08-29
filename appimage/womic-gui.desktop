@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=WO Mic GUI
+GenericName=Microphone
+Comment=Tiny GUI for the WO Mic Linux CLI client
+Exec=womic-gui
+Icon=womic-gui
+Categories=Audio;Utility;
+Terminal=false
+StartupNotify=true
